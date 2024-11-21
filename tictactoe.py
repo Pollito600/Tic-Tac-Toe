@@ -8,7 +8,6 @@ X = "X"
 O = "O"
 EMPTY = None
 
-
 def initial_state():
     """
     Returns starting state of the board.
@@ -17,7 +16,6 @@ def initial_state():
     return [[EMPTY, EMPTY, EMPTY],
             [EMPTY, EMPTY, EMPTY],
             [EMPTY, EMPTY, EMPTY]]
-
 
 def player(board):
     """
@@ -29,14 +27,12 @@ def player(board):
     
     return X if x_count <= o_count else O
 
-
 def actions(board):
     """
     Returns set of all possible actions (i, j) available on the board.
     """
     # Find all empty spots on the board
     return {(i, j) for i in range(3) for j in range(3) if board[i][j] == EMPTY}
-
 
 def result(board, action):
     """
@@ -52,7 +48,6 @@ def result(board, action):
     new_board[i][j] = player(board)
     
     return new_board
-
 
 def winner(board):
     """
@@ -74,14 +69,12 @@ def winner(board):
     
     return None
 
-
 def terminal(board):
     """
     Returns True if game is over, False otherwise.
     """
     # Game is over if someone wins or if the board is full
     return winner(board) is not None or all(cell is not EMPTY for row in board for cell in row)
-
 
 def utility(board):
     """
@@ -97,59 +90,75 @@ def utility(board):
     else:
         return 0
 
-
-
 def minimax(board):
     """
     Returns the optimal action for the current player on the board.
     """
-    # Helper for maximizing player (X)
+    # Helper function for the maximizing player (X)
     def max_value(board):
+        # If the game is over, return the utility of the board
         if terminal(board):
             return utility(board)
         
-        v = -math.inf
+        v = -math.inf  # Start with the worst possible value for maximizer
         
         # Explore all possible moves
         for action in actions(board):
+            # Update the best value by comparing it with the result of min_value
             v = max(v, min_value(result(board, action)))
-            
+        
         return v
 
-    # Helper for minimizing player (O)
+    # Helper function for the minimizing player (O)
     def min_value(board):
+        # If the game is over, return the utility of the board
         if terminal(board):
             return utility(board)
         
-        v = math.inf
+        v = math.inf  # Start with the worst possible value for minimizer
         
         # Explore all possible moves
         for action in actions(board):
+            # Update the best value by comparing it with the result of max_value
             v = min(v, max_value(result(board, action)))
-            
+        
         return v
 
-    # If the game is over, no moves are left
+    # If the game is already over, there's no move to make
     if terminal(board):
         return None
 
-    # Choose the best move based on whose turn it is
+    # Determine which player's turn it is
     current_player = player(board)
+    best_action = None  # This will store the best move found
 
-    # Check for an immediate win or block
+    # If it's X's turn (maximizing player)
     if current_player == X:
+        best_score = -math.inf  # Start with the worst possible score for maximizer
+        
+        # Explore all possible moves
         for action in actions(board):
-            if utility(result(board, action)) == 1:
-                return action  # Return the winning move directly
+            # Evaluate the result of the move using min_value
+            score = min_value(result(board, action))
+            
+            # If this move is better than the current best, update
+            if score > best_score:
+                best_score = score
+                best_action = action
+
+    # If it's O's turn (minimizing player)
     else:
+        best_score = math.inf  # Start with the worst possible score for minimizer
+        
+        # Explore all possible moves
         for action in actions(board):
-            if utility(result(board, action)) == -1:
-                return action  # Block the winning move directly
+            # Evaluate the result of the move using max_value
+            score = max_value(result(board, action))
+            
+            # If this move is better than the current best, update
+            if score < best_score:
+                best_score = score
+                best_action = action
 
-    # If no immediate win or block, proceed with minimax evaluation
-    if current_player == X:
-        _, move = max((min_value(result(board, action)), action) for action in actions(board))
-    else:
-        _, move = min((max_value(result(board, action)), action) for action in actions(board))
-
-    return move
+    # Return the action that leads to the optimal outcome
+    return best_action
