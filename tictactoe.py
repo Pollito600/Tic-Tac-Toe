@@ -98,6 +98,7 @@ def utility(board):
         return 0
 
 
+
 def minimax(board):
     """
     Returns the optimal action for the current player on the board.
@@ -109,6 +110,7 @@ def minimax(board):
         
         v = -math.inf
         
+        # Explore all possible moves
         for action in actions(board):
             v = max(v, min_value(result(board, action)))
             
@@ -121,6 +123,7 @@ def minimax(board):
         
         v = math.inf
         
+        # Explore all possible moves
         for action in actions(board):
             v = min(v, max_value(result(board, action)))
             
@@ -132,11 +135,21 @@ def minimax(board):
 
     # Choose the best move based on whose turn it is
     current_player = player(board)
-    
+
+    # Check for an immediate win or block
+    if current_player == X:
+        for action in actions(board):
+            if utility(result(board, action)) == 1:
+                return action  # Return the winning move directly
+    else:
+        for action in actions(board):
+            if utility(result(board, action)) == -1:
+                return action  # Block the winning move directly
+
+    # If no immediate win or block, proceed with minimax evaluation
     if current_player == X:
         _, move = max((min_value(result(board, action)), action) for action in actions(board))
-        
     else:
         _, move = min((max_value(result(board, action)), action) for action in actions(board))
-        
+
     return move
